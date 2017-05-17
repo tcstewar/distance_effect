@@ -10,6 +10,8 @@ class DistanceEffectTrial(pytry.NengoTrial):
         self.param('inter-stimulus interval', isi=0.5)
         self.param('probe synapse', probe_synapse=0.1)
         self.param('representation mode (concat|convolve)', rep_mode='concat')
+        self.param('training noise', noise=0.0)
+        self.param('training copies', copies=1)
 
     def model(self, p):
 
@@ -59,7 +61,13 @@ class DistanceEffectTrial(pytry.NengoTrial):
                             outputs.append([1])
                         distance.append(abs(i-j))
 
-            nengo.Connection(ens, answer, function=outputs, eval_points=inputs)
+            training_inputs = np.tile(self.inputs, (p.copies, 1))
+            training_outputs = np.tile(self.outputs, (p.copies, 1))
+            if p.noise > 0:
+                training_inputs = np.random.normal(training_inputs, p.noise)
+                training_outputs = np.random.normal(training_outputs, p.noise)
+
+            nengo.Connection(ens, answer, function=training_outputs, eval_points=training_inputs)
 
             def stimulus(t):
                 index = int(t / p.isi) % len(inputs)
