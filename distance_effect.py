@@ -2,22 +2,22 @@ import nengo
 import nengo.spa as spa
 import numpy as np
 
-D = 16
-n_neurons = 100
-
 
 digits = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE']
 
+D = 16
 vocab = spa.Vocabulary(D)
 
 model = nengo.Network()
 with model:
-    
+    model.config[nengo.Ensemble].neuron_type=nengo.Direct()
     num1 = spa.State(D, vocab=vocab)
     num2 = spa.State(D, vocab=vocab)
     
-    ens = nengo.Ensemble(n_neurons=n_neurons, dimensions=D*2)
+    model.config[nengo.Ensemble].neuron_type=nengo.LIF()
+    ens = nengo.Ensemble(n_neurons=100, dimensions=D*2)
     
+    model.config[nengo.Ensemble].neuron_type=nengo.Direct()
     answer = nengo.Ensemble(n_neurons=100, dimensions=1)
     
     nengo.Connection(num1.output, ens[:D]) # connect to the first D dimensions
@@ -39,5 +39,4 @@ with model:
                     outputs.append([1])
                 
     nengo.Connection(ens, answer, function=outputs, eval_points=inputs)
-    
     
