@@ -12,6 +12,7 @@ class DistanceEffectTrial(pytry.NengoTrial):
         self.param('representation mode (concat|convolve)', rep_mode='concat')
         self.param('training noise', noise=0.0)
         self.param('training copies', copies=1)
+        self.param('equal number of trials across distances', balance_trials_by_distance=False)
 
     def model(self, p):
 
@@ -43,10 +44,23 @@ class DistanceEffectTrial(pytry.NengoTrial):
             self.outputs = outputs
             self.distance = distance
 
-            for i in range(len(digits)):
-                for j in range(len(digits)):
-                    if i != j:
+            items = []
+            if not p.balance_trials_by_distance:
+                for i in range(len(digits)):
+                    for j in range(len(digits)):
+                        if i != j:
+                            items.append((i,j))
+            else:
+                for dist in range(1,9):
+                    i = 0
+                    for item in range(8):
+                        items.append((i, i+dist))
+                        items.append((i+dist, i))
+                        i += 1
+                        if i+dist >= len(digits):
+                            i = 0
 
+            for i,j in items:
                         if p.rep_mode == 'concat':
                             n1 = vocab.parse(digits[i]).v
                             n2 = vocab.parse(digits[j]).v
